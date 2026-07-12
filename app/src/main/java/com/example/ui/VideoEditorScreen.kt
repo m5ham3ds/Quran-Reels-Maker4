@@ -132,9 +132,9 @@ fun VideoEditorScreen(
     var textBgRadius by remember { mutableIntStateOf(16) }
     var surahNameColorStr by remember { mutableStateOf("#FFFFFF") }
     var translationColorStr by remember { mutableStateOf("#FFFFFF") }
-    var surahNameOpacity by remember { mutableFloatStateOf(1f) }
-    var translationOpacity by remember { mutableFloatStateOf(1f) }
-    var textOpacity by remember { mutableFloatStateOf(1f) }
+    var surahNameOpacity by remember { mutableFloatStateOf(0.8f) }
+    var translationOpacity by remember { mutableFloatStateOf(0.8f) }
+    var textOpacity by remember { mutableFloatStateOf(0.8f) }
     var textAnimation by remember { mutableStateOf("Fade") }
 
     var isLocalLoading by remember { mutableStateOf(false) }
@@ -584,7 +584,7 @@ fun VideoEditorScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), ((surahNameY - 30f) * scalePx).roundToInt()) }
+                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), ((surahNameY + 40f) * scalePx).roundToInt()) }
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = {
@@ -618,7 +618,7 @@ fun VideoEditorScreen(
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .offset { IntOffset((iconX * scalePx).roundToInt(), ((iconY + 120f) * scalePx).roundToInt()) }
+                        .offset { IntOffset((iconX * scalePx).roundToInt(), ((iconY + 70f) * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
