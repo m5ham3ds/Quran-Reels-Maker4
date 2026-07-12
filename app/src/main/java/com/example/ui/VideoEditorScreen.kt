@@ -114,12 +114,12 @@ fun VideoEditorScreen(
     var surahNameY by remember { mutableFloatStateOf(0f) }
     var iconX by remember { mutableFloatStateOf(0f) }
     var iconY by remember { mutableFloatStateOf(0f) }
-    var iconSize by remember { mutableFloatStateOf(20f) }
+    var iconSize by remember { mutableFloatStateOf(40f) }
     var iconOpacity by remember { mutableFloatStateOf(0.8f) }
 
     var fontSize by remember { mutableFloatStateOf(20f) }
     var translationFontSize by remember { mutableFloatStateOf(8f) }
-    var surahNameFontSize by remember { mutableFloatStateOf(44f) }
+    var surahNameFontSize by remember { mutableFloatStateOf(20f) }
     var textColor by remember { mutableStateOf("#FFFFFF") }
 
     var quranFontFamily by remember { mutableStateOf("Default") }
@@ -584,7 +584,7 @@ fun VideoEditorScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), ((surahNameY - 70f) * scalePx).roundToInt()) }
+                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), ((surahNameY - 40f) * scalePx).roundToInt()) }
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = {
@@ -602,7 +602,7 @@ fun VideoEditorScreen(
                     }
                     .clickable { selectedElement = "surah" }
                     .border(if (selectedElement == "surah") 2.dp else 0.dp, if (selectedElement == "surah") LuxuryGold else Color.Transparent, RoundedCornerShape(4.dp))
-                    .padding(8.dp)
+                    
             ) {
                 Text(
                     text = currentSurah,
@@ -618,7 +618,7 @@ fun VideoEditorScreen(
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .offset { IntOffset((iconX * scalePx).roundToInt(), ((iconY + 50f) * scalePx).roundToInt()) }
+                        .offset { IntOffset((iconX * scalePx).roundToInt(), ((iconY + 120f) * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
@@ -636,7 +636,7 @@ fun VideoEditorScreen(
                         }
                         .clickable { selectedElement = "icon" }
                         .border(if (selectedElement == "icon") 2.dp else 0.dp, if (selectedElement == "icon") LuxuryGold else Color.Transparent, RoundedCornerShape(4.dp))
-                        .padding(8.dp)
+                        
                 ) {
                     Text("♡", color = Color.White.copy(alpha = iconOpacity.coerceAtLeast(0.3f)), fontSize = spFromCanvas(iconSize.toFloat()))
                 }
@@ -680,7 +680,7 @@ fun VideoEditorScreen(
                 // Arabic Text Handle
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (((arabicTextY - 70f)) * scalePx).roundToInt()) }
+                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (((arabicTextY - 160f)) * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
@@ -698,7 +698,7 @@ fun VideoEditorScreen(
                         }
                         .clickable { selectedElement = "arabic" }
                         .border(if (selectedElement == "arabic") 2.dp else 0.dp, if (selectedElement == "arabic") LuxuryGold else Color.Transparent, RoundedCornerShape(4.dp))
-                        .padding(16.dp)
+                        
                 ) {
                     Text(
                         text = currentArabic,
@@ -714,7 +714,7 @@ fun VideoEditorScreen(
                 if (showTranslation) {
                     Box(
                         modifier = Modifier
-                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (((translationTextY - 110f)) * scalePx).roundToInt()) }
+                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (((translationTextY - 230f)) * scalePx).roundToInt()) }
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = {
@@ -732,7 +732,7 @@ fun VideoEditorScreen(
                             }
                             .clickable { selectedElement = "translation" }
                             .border(if (selectedElement == "translation") 2.dp else 0.dp, if (selectedElement == "translation") LuxuryGold else Color.Transparent, RoundedCornerShape(4.dp))
-                            .padding(16.dp)
+                            
                     ) {
                         Text(
                             text = currentEnglish,
