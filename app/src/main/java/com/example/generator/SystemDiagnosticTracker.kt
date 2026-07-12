@@ -86,11 +86,15 @@ object SystemDiagnosticTracker {
             }
         }
 
-        // 1. Try Public Movies Directory directly
+        // Direct Public Movies Directory as requested
         try {
             val moviesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MOVIES)
             val quranReelsDir = java.io.File(moviesDir, "Quran Reels/ERROR")
             if (!quranReelsDir.exists()) quranReelsDir.mkdirs()
+            
+            // Delete old error files
+            quranReelsDir.listFiles()?.forEach { it.delete() }
+            
             val file = java.io.File(quranReelsDir, fileName)
             java.io.PrintWriter(java.io.FileWriter(file)).use { it.print(reportContent) }
             finalPath = file.absolutePath
@@ -98,30 +102,6 @@ object SystemDiagnosticTracker {
             return finalPath
         } catch (e: Exception) {
             com.example.utils.AppLogger.e("SystemDiagnosticTracker", "Failed to save via public directory", e)
-        }
-
-        // 2. Try MediaStore fallback
-        try {
-            val values = android.content.ContentValues().apply {
-                put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_MOVIES + "/Quran Reels/ERROR")
-                }
-            }
-            val collection = android.provider.MediaStore.Files.getContentUri("external")
-            val uri = context.contentResolver.insert(collection, values)
-            if (uri != null) {
-                context.contentResolver.openOutputStream(uri)?.use { out ->
-                    java.io.OutputStreamWriter(out).use { writer ->
-                        writer.write(reportContent)
-                    }
-                }
-                finalPath = uri.toString()
-                return finalPath
-            }
-        } catch (e: Exception) {
-            com.example.utils.AppLogger.e("SystemDiagnosticTracker", "Failed to save via MediaStore", e)
         }
 
         // 3. Fallback to App Scoped Directories
