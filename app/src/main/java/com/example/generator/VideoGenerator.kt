@@ -3552,20 +3552,28 @@ class SequentialFrameDecoder(private val videoPath: String) {
         val uPixelStride = uPlane.pixelStride
         val vPixelStride = vPlane.pixelStride
         
-        if (reusableBitmap == null || reusableBitmap!!.width != w || reusableBitmap!!.height != h) {
+        val maxDim = 1280
+        val scale = Math.max(1, Math.max(w / maxDim, h / maxDim))
+        
+        val outW = w / scale
+        val outH = h / scale
+        
+        if (reusableBitmap == null || reusableBitmap!!.isRecycled || reusableBitmap!!.width != outW || reusableBitmap!!.height != outH) {
             reusableBitmap?.recycle()
-            reusableBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            reusableBitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
         }
-        if (reusablePixels == null || reusablePixels!!.size != w * h) {
-            reusablePixels = IntArray(w * h)
+        if (reusablePixels == null || reusablePixels!!.size != outW * outH) {
+            reusablePixels = IntArray(outW * outH)
         }
         val bitmap = reusableBitmap!!
         val pixels = reusablePixels!!
         
         var index = 0
-        for (y in 0 until h) {
+        for (outY in 0 until outH) {
+            val y = outY * scale
             val yRowStart = y * yRowStride
-            for (x in 0 until w) {
+            for (outX in 0 until outW) {
+                val x = outX * scale
                 val yValue = (yBuffer.get(yRowStart + x).toInt() and 0xff)
                 
                 val uvIndex = (y / 2) * uRowStride + (x / 2) * uPixelStride
@@ -3574,18 +3582,18 @@ class SequentialFrameDecoder(private val videoPath: String) {
                 val uValue = if (uvIndex < uBuffer.capacity()) (uBuffer.get(uvIndex).toInt() and 0xff) - 128 else 0
                 val vValue = if (vIndex < vBuffer.capacity()) (vBuffer.get(vIndex).toInt() and 0xff) - 128 else 0
                 
-                var rCol = (yValue + 1.370705f * vValue).toInt()
-                var gCol = (yValue - 0.337633f * uValue - 0.698001f * vValue).toInt()
-                var bCol = (yValue + 1.732446f * uValue).toInt()
+                var rCol = yValue + ((vValue * 1436) shr 10)
+                var gCol = yValue - ((uValue * 352 + vValue * 731) shr 10)
+                var bCol = yValue + ((uValue * 1814) shr 10)
                 
-                rCol = rCol.coerceIn(0, 255)
-                gCol = gCol.coerceIn(0, 255)
-                bCol = bCol.coerceIn(0, 255)
+                rCol = if (rCol < 0) 0 else if (rCol > 255) 255 else rCol
+                gCol = if (gCol < 0) 0 else if (gCol > 255) 255 else gCol
+                bCol = if (bCol < 0) 0 else if (bCol > 255) 255 else bCol
                 
                 pixels[index++] = (0xff shl 24) or (rCol shl 16) or (gCol shl 8) or bCol
             }
         }
-        bitmap.setPixels(pixels, 0, w, 0, 0, w, h)
+        bitmap.setPixels(pixels, 0, outW, 0, 0, outW, outH)
         return bitmap
     }
 
