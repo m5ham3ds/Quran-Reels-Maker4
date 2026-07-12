@@ -1037,6 +1037,24 @@ class VideoGenerator {
             var vidHeight = 1280
             var vidBitrate = 4000000
             
+            when (videoQuality) {
+                "Ultra" -> {
+                    vidWidth = 1080
+                    vidHeight = 1920
+                    vidBitrate = 16000000
+                }
+                "High" -> {
+                    vidWidth = 1080
+                    vidHeight = 1920
+                    vidBitrate = 8000000
+                }
+                "Normal" -> {
+                    vidWidth = 720
+                    vidHeight = 1280
+                    vidBitrate = 4000000
+                }
+            }
+            
             val fpsVal = settingsManager.videoFps.first()
             
             val videoFormat = MediaFormat.createVideoFormat("video/avc", vidWidth, vidHeight).apply {
@@ -2167,6 +2185,22 @@ class VideoGenerator {
         bitmap: Bitmap,
         canvas: Canvas
     ) {
+        
+        val scaleRatio = videoWidth / 720f
+        val scaledTextFontSize = textFontSize.toFloat() * scaleRatio
+        val scaledTranslationFontSize = translationFontSize.toFloat() * scaleRatio
+        val scaledSurahNameFontSize = surahNameFontSize.toFloat() * scaleRatio
+        val scaledIconSize = iconSize.toFloat() * scaleRatio
+        val scaledArabicTextX = arabicTextX.toFloat() * scaleRatio
+        val scaledArabicTextY = arabicTextY.toFloat() * scaleRatio
+        val scaledTranslationTextX = translationTextX.toFloat() * scaleRatio
+        val scaledTranslationTextY = translationTextY.toFloat() * scaleRatio
+        val scaledSurahNameX = surahNameX.toFloat() * scaleRatio
+        val scaledSurahNameY = surahNameY.toFloat() * scaleRatio
+        val scaledIconX = iconX.toFloat() * scaleRatio
+        val scaledIconY = iconY.toFloat() * scaleRatio
+        val scaledTextBgRadius = textBgRadius.toFloat() * scaleRatio
+        
         bitmap.eraseColor(Color.TRANSPARENT)
         
         // 1. Draw Background
@@ -2294,12 +2328,12 @@ class VideoGenerator {
             alpha = (surahNameOpacity * 255).toInt().coerceIn(0, 255)
             this.textAlign = Paint.Align.CENTER
             typeface = tfSurah
-            textSize = surahNameFontSize.toFloat()
+            textSize = scaledSurahNameFontSize
             setShadowLayer(8f, 0f, 4f, Color.argb(200, 0, 0, 0))
         }
         // Apply Surah Name X/Y offsets, scaled
-        val snX = videoWidth / 2f + (surahNameX.toFloat())
-        val surahTopY = 110f + (surahNameY.toFloat())
+        val snX = videoWidth / 2f + scaledSurahNameX
+        val surahTopY = 110f * scaleRatio + scaledSurahNameY
         val snY = surahTopY - surahPaint.ascent()
         if (!isPreviewMode) {
             canvas.drawText(surahName, snX, snY, surahPaint)
@@ -2348,7 +2382,7 @@ class VideoGenerator {
             color = finalTextColor
             this.textAlign = Paint.Align.LEFT
             typeface = tfArabicWeighted
-            this.textSize = textFontSize.toFloat()
+            this.textSize = scaledTextFontSize
             setShadowLayer(8f, 0f, 4f, Color.argb(200, 0, 0, 0))
         }
         
@@ -2358,7 +2392,7 @@ class VideoGenerator {
             else -> Layout.Alignment.ALIGN_CENTER
         }
         
-        val horizontalPadding = (48).toInt()
+        val horizontalPadding = (96f * scaleRatio).toInt()
         val textWidth = videoWidth - horizontalPadding
         val sl = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             StaticLayout.Builder.obtain(text, 0, text.length, textPaint, textWidth)
@@ -2389,7 +2423,7 @@ class VideoGenerator {
             color = finalTransColor
             this.textAlign = Paint.Align.LEFT
             typeface = tfEnglishWeighted
-            this.textSize = translationFontSize.toFloat()
+            this.textSize = scaledTranslationFontSize
             setShadowLayer(8f, 0f, 4f, Color.argb(200, 0, 0, 0))
         }
         
@@ -2406,14 +2440,14 @@ class VideoGenerator {
             null
         }
  
-        val totalHeight = sl.height + (transSl?.height?.plus(32f) ?: 0f)
+        val totalHeight = sl.height + (transSl?.height?.plus(32f * scaleRatio) ?: 0f)
         
         val baseStartY = when (textPosition) {
-            "Top" -> 100f
-            "Bottom" -> videoHeight.toFloat() - totalHeight - 100f
-            else -> (videoHeight.toFloat() - totalHeight) / 2f + 150f
+            "Top" -> 100f * scaleRatio
+            "Bottom" -> videoHeight.toFloat() - totalHeight - 100f * scaleRatio
+            else -> (videoHeight.toFloat() - totalHeight) / 2f + 150f * scaleRatio
         }
-        val startY = baseStartY + ((arabicTextY.toFloat() - 70f))
+        val startY = baseStartY + (scaledArabicTextY - 70f * scaleRatio)
         
         canvas.save()
         if (animScale != 1f || animTranslateY != 0f || animTranslateX != 0f) {
@@ -2435,30 +2469,30 @@ class VideoGenerator {
                     style = Paint.Style.FILL
                 }
                 
-                val boxPadding = 30f
+                val boxPadding = 30f * scaleRatio
                 val boxWidth = videoWidth - (boxPadding * 2)
-                val boxHeight = totalHeight + (84f)
+                val boxHeight = totalHeight + (84f * scaleRatio)
                 val boxLeft = (videoWidth / 2f) - boxWidth / 2f
-                val boxTop = baseStartY - (42f)
+                val boxTop = baseStartY - (42f * scaleRatio)
                 val boxRight = boxLeft + boxWidth
                 val boxBottom = boxTop + boxHeight
                 
                 val rect = android.graphics.RectF(boxLeft, boxTop, boxRight, boxBottom)
-                val radius = textBgRadius.toFloat() * 1.5f
+                val radius = scaledTextBgRadius * 1.5f
                 canvas.drawRoundRect(rect, radius, radius, bgPaint)
             }
             
             // 5. Draw Primary Text
             canvas.save()
-            canvas.translate((horizontalPadding / 2f) + (arabicTextX.toFloat()), startY)
+            canvas.translate((horizontalPadding / 2f) + scaledArabicTextX, startY)
             sl.draw(canvas)
             canvas.restore()
             
             // 6. Draw translation
             if (transSl != null) {
                 canvas.save()
-                val transY = baseStartY + sl.height + 32f + ((translationTextY.toFloat() - 110f))
-                canvas.translate((horizontalPadding / 2f) + (translationTextX.toFloat()), transY)
+                val transY = baseStartY + sl.height + 32f * scaleRatio + (scaledTranslationTextY - 110f * scaleRatio)
+                canvas.translate((horizontalPadding / 2f) + scaledTranslationTextX, transY)
                 transSl.draw(canvas)
                 canvas.restore()
             }
@@ -2474,12 +2508,12 @@ class VideoGenerator {
                     val alphaVal = (iconOpacity * 255).toInt().coerceIn(0, 255)
                     color = Color.argb(alphaVal, 255, 255, 255)
                     typeface = Typeface.DEFAULT
-                    textSize = iconSize.toFloat()
+                    textSize = scaledIconSize
                     this.textAlign = Paint.Align.CENTER
                     setShadowLayer(6f, 0f, 3f, Color.argb(150, 0, 0, 0))
                 }
-                val heartY = videoHeight / 2f + (iconY.toFloat() + 50f + 95f) - iconPaint.descent()
-                canvas.drawText("♡", videoWidth / 2f + (iconX.toFloat()), heartY, iconPaint)
+                val heartY = videoHeight / 2f + (scaledIconY + 50f * scaleRatio + 95f * scaleRatio) - iconPaint.descent()
+                canvas.drawText("♡", videoWidth / 2f + scaledIconX, heartY, iconPaint)
             }
         }
     }
@@ -3539,7 +3573,7 @@ class SequentialFrameDecoder(private val videoPath: String) {
         val uPixelStride = uPlane.pixelStride
         val vPixelStride = vPlane.pixelStride
         
-        val maxDim = 1280
+        val maxDim = 1920
         val scale = Math.max(1, Math.max(w / maxDim, h / maxDim))
         
         val outW = w / scale
