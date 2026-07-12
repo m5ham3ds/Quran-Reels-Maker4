@@ -2333,7 +2333,7 @@ class VideoGenerator {
         }
         // Apply Surah Name X/Y offsets, scaled
         val snX = videoWidth / 2f + scaledSurahNameX
-        val surahTopY = 140f * scaleRatio + scaledSurahNameY
+        val surahTopY = 150f * scaleRatio + scaledSurahNameY
         val snY = surahTopY - surahPaint.ascent()
         if (!isPreviewMode) {
             canvas.drawText(surahName, snX, snY, surahPaint)
@@ -2447,7 +2447,7 @@ class VideoGenerator {
             "Bottom" -> videoHeight.toFloat() - totalHeight - 100f * scaleRatio
             else -> (videoHeight.toFloat() - totalHeight) / 2f + 150f * scaleRatio
         }
-        val startY = baseStartY + (scaledArabicTextY - 160f * scaleRatio)
+        val startY = baseStartY + (scaledArabicTextY - 140f * scaleRatio)
         
         canvas.save()
         if (animScale != 1f || animTranslateY != 0f || animTranslateX != 0f) {
@@ -2491,7 +2491,7 @@ class VideoGenerator {
             // 6. Draw translation
             if (transSl != null) {
                 canvas.save()
-                val transY = baseStartY + sl.height + 32f * scaleRatio + (scaledTranslationTextY - 230f * scaleRatio)
+                val transY = baseStartY + sl.height + 32f * scaleRatio + (scaledTranslationTextY - 200f * scaleRatio)
                 canvas.translate((horizontalPadding / 2f) + scaledTranslationTextX, transY)
                 transSl.draw(canvas)
                 canvas.restore()
