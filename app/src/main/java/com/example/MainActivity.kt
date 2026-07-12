@@ -106,6 +106,22 @@ class MainActivity : ComponentActivity() {
         com.example.utils.CrashReporter.initialize(this)
         com.example.generator.SystemDiagnosticTracker.init(this)
         enableEdgeToEdge()
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            if (!android.os.Environment.isExternalStorageManager()) {
+                try {
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    intent.addCategory("android.intent.category.DEFAULT")
+                    intent.data = android.net.Uri.parse(String.format("package:%s", applicationContext.packageName))
+                    startActivityForResult(intent, 2296)
+                } catch (e: Exception) {
+                    val intent = android.content.Intent()
+                    intent.action = android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                    startActivityForResult(intent, 2296)
+                }
+            }
+        }
+        
         setContent {
             val context = LocalContext.current
             val settingsManager = remember { SettingsManager(context) }

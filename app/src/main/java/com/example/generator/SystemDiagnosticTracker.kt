@@ -92,8 +92,12 @@ object SystemDiagnosticTracker {
             val quranReelsDir = java.io.File(moviesDir, "Quran Reels/ERROR")
             if (!quranReelsDir.exists()) quranReelsDir.mkdirs()
             
-            // Delete old error files
-            quranReelsDir.listFiles()?.forEach { it.delete() }
+            // Delete old error files, but keep live logcat
+            quranReelsDir.listFiles()?.forEach { 
+                if (it.name != "live_logcat.txt") {
+                    it.delete() 
+                }
+            }
             
             val file = java.io.File(quranReelsDir, fileName)
             java.io.PrintWriter(java.io.FileWriter(file)).use { it.print(reportContent) }

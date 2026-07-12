@@ -199,8 +199,12 @@ class CrashReporter private constructor(
             val quranReelsDir = File(moviesDir, "Quran Reels/ERROR")
             if (!quranReelsDir.exists()) quranReelsDir.mkdirs()
             
-            // Clear old crash files
-            quranReelsDir.listFiles()?.forEach { it.delete() }
+            // Clear old crash files, but keep live logcat
+            quranReelsDir.listFiles()?.forEach { 
+                if (it.name != "live_logcat.txt") {
+                    it.delete() 
+                }
+            }
             
             val file = File(quranReelsDir, fileName)
             PrintWriter(FileWriter(file)).use { it.print(report) }
@@ -299,11 +303,11 @@ private object LiveLogToFile {
                 // Determine file path
                 var logFile: File? = null
                 try {
-                    val publicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Quran Reels ERROR")
+                    val publicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Quran Reels/ERROR")
                     if (!publicDir.exists()) publicDir.mkdirs()
                     logFile = File(publicDir, "live_logcat.txt")
                 } catch (e: Exception) {
-                    val fallbackDir = File(context.getExternalFilesDir(null), "Quran Reels ERROR")
+                    val fallbackDir = File(context.getExternalFilesDir(null), "Quran Reels/ERROR")
                     if (!fallbackDir.exists()) fallbackDir.mkdirs()
                     logFile = File(fallbackDir, "live_logcat.txt")
                 }
