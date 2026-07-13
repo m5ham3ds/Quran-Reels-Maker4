@@ -142,6 +142,23 @@ fun VideoEditorScreen(
     data class Chunk(val arabic: String, val english: String, val startTimeMs: Long, val endTimeMs: Long, val surahName: String, val bgIndex: Int = 0)
     var timelineChunks by remember { mutableStateOf<List<Chunk>>(emptyList()) }
 
+    LaunchedEffect(fontSize) { settingsManager.setFontSize(fontSize.toInt()) }
+    LaunchedEffect(translationFontSize) { settingsManager.setTranslationFontSize(translationFontSize.toInt()) }
+    LaunchedEffect(surahNameFontSize) { settingsManager.setSurahNameFontSize(surahNameFontSize.toInt()) }
+    LaunchedEffect(iconSize) { settingsManager.setIconSize(iconSize.toInt()) }
+    
+    LaunchedEffect(textOpacity) { settingsManager.setTextOpacity(textOpacity) }
+    LaunchedEffect(translationOpacity) { settingsManager.setTranslationOpacity(translationOpacity) }
+    LaunchedEffect(surahNameOpacity) { settingsManager.setSurahNameOpacity(surahNameOpacity) }
+    LaunchedEffect(iconOpacity) { settingsManager.setIconOpacity(iconOpacity) }
+    
+    LaunchedEffect(textColor) { settingsManager.setTextColor(textColor) }
+    LaunchedEffect(quranFontFamily) { settingsManager.setFontFamily(quranFontFamily) }
+    LaunchedEffect(surahNameFontFamily) { settingsManager.setSurahNameFontFamily(surahNameFontFamily) }
+    LaunchedEffect(translationFontFamily) { settingsManager.setTranslationFontFamily(translationFontFamily) }
+    
+    LaunchedEffect(textAlignStr) { settingsManager.setTextAlign(textAlignStr) }
+
     LaunchedEffect(Unit) {
         lastGenExists = settingsManager.lastGenExists.first()
         lastGenSurah = settingsManager.lastGenSurah.first()
@@ -311,7 +328,14 @@ fun VideoEditorScreen(
     }
     
     fun savePosition(element: String, x: Float, y: Float) {
-        // Do not modify global defaults during preview.
+        coroutineScope.launch {
+            when (element) {
+                "arabic" -> { settingsManager.setArabicTextX(x.toInt()); settingsManager.setArabicTextY(y.toInt()) }
+                "translation" -> { settingsManager.setTranslationTextX(x.toInt()); settingsManager.setTranslationTextY(y.toInt()) }
+                "surah" -> { settingsManager.setSurahNameX(x.toInt()); settingsManager.setSurahNameY(y.toInt()) }
+                "icon" -> { settingsManager.setIconX(x.toInt()); settingsManager.setIconY(y.toInt()) }
+            }
+        }
     }
 
     fun captureState(): EditorState {
@@ -680,7 +704,7 @@ fun VideoEditorScreen(
                 // Arabic Text Handle
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (((arabicTextY - 140f)) * scalePx).roundToInt()) }
+                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (((arabicTextY - 70f)) * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
@@ -714,7 +738,7 @@ fun VideoEditorScreen(
                 if (showTranslation) {
                     Box(
                         modifier = Modifier
-                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (((translationTextY - 200f)) * scalePx).roundToInt()) }
+                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (((translationTextY - 90f)) * scalePx).roundToInt()) }
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = {
