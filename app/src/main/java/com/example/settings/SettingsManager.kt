@@ -166,21 +166,21 @@ class SettingsManager(private val context: Context) {
     val translationOpacity: Flow<Float> = context.dataStore.data.map { it[TRANSLATION_OPACITY] ?: 0.8f }
     
     val arabicTextX: Flow<Int> = context.dataStore.data.map { it[ARABIC_TEXT_X] ?: 0 }
-    val arabicTextY: Flow<Int> = context.dataStore.data.map { it[ARABIC_TEXT_Y] ?: 0 }
+    val arabicTextY: Flow<Int> = context.dataStore.data.map { it[ARABIC_TEXT_Y] ?: -70 }
     val translationTextX: Flow<Int> = context.dataStore.data.map { it[TRANSLATION_TEXT_X] ?: 0 }
-    val translationTextY: Flow<Int> = context.dataStore.data.map { it[TRANSLATION_TEXT_Y] ?: 0 }
+    val translationTextY: Flow<Int> = context.dataStore.data.map { it[TRANSLATION_TEXT_Y] ?: -90 }
     
     val surahNameFontFamily: Flow<String> = context.dataStore.data.map { it[SURAH_NAME_FONT_FAMILY] ?: "Default" }
     val surahNameFontSize: Flow<Int> = context.dataStore.data.map { it[SURAH_NAME_FONT_SIZE] ?: 20 }
     val surahNameColor: Flow<String> = context.dataStore.data.map { it[SURAH_NAME_COLOR] ?: "#FFFFFF" }
     val surahNameOpacity: Flow<Float> = context.dataStore.data.map { it[SURAH_NAME_OPACITY] ?: 0.8f }
     val surahNameX: Flow<Int> = context.dataStore.data.map { it[SURAH_NAME_X] ?: 0 }
-    val surahNameY: Flow<Int> = context.dataStore.data.map { it[SURAH_NAME_Y] ?: 0 }
+    val surahNameY: Flow<Int> = context.dataStore.data.map { it[SURAH_NAME_Y] ?: 40 }
     
     val iconSize: Flow<Int> = context.dataStore.data.map { it[ICON_SIZE] ?: 40 }
     val iconOpacity: Flow<Float> = context.dataStore.data.map { it[ICON_OPACITY] ?: 0.8f }
     val iconX: Flow<Int> = context.dataStore.data.map { it[ICON_X] ?: 0 }
-    val iconY: Flow<Int> = context.dataStore.data.map { it[ICON_Y] ?: 0 }
+    val iconY: Flow<Int> = context.dataStore.data.map { it[ICON_Y] ?: 70 }
 
     // Gemini & Social accounts flows
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }

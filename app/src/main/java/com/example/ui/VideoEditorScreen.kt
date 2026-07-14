@@ -169,14 +169,17 @@ fun VideoEditorScreen(
         lastGenVideoQuery = settingsManager.lastGenVideoQuery.first()
         pexelsApiKey = settingsManager.pexelsApiKey.first()
         videoQuality = settingsManager.videoQuality.first()
-        arabicTextX = settingsManager.arabicTextX.first().toFloat()
-        arabicTextY = settingsManager.arabicTextY.first().toFloat()
-        translationTextX = settingsManager.translationTextX.first().toFloat()
-        translationTextY = settingsManager.translationTextY.first().toFloat()
-        surahNameX = settingsManager.surahNameX.first().toFloat()
-        surahNameY = settingsManager.surahNameY.first().toFloat()
-        iconX = settingsManager.iconX.first().toFloat()
-        iconY = settingsManager.iconY.first().toFloat()
+                                arabicTextX = settingsManager.arabicTextX.first().toFloat()
+                                arabicTextY = settingsManager.arabicTextY.first().toFloat()
+                                translationTextX = settingsManager.translationTextX.first().toFloat()
+                                translationTextY = settingsManager.translationTextY.first().toFloat()
+                                surahNameX = settingsManager.surahNameX.first().toFloat()
+                                surahNameY = settingsManager.surahNameY.first().toFloat()
+                                iconX = settingsManager.iconX.first().toFloat()
+                                iconY = settingsManager.iconY.first().toFloat()
+                                
+
+
         iconSize = settingsManager.iconSize.first().toFloat()
         iconOpacity = settingsManager.iconOpacity.first()
         fontSize = settingsManager.fontSize.first().toFloat()
@@ -608,7 +611,7 @@ fun VideoEditorScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), ((surahNameY + 40f) * scalePx).roundToInt()) }
+                    .offset { IntOffset((surahNameX * scalePx).roundToInt(), (surahNameY * scalePx).roundToInt()) }
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = {
@@ -642,7 +645,7 @@ fun VideoEditorScreen(
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .offset { IntOffset((iconX * scalePx).roundToInt(), ((iconY + 70f) * scalePx).roundToInt()) }
+                        .offset { IntOffset((iconX * scalePx).roundToInt(), (iconY * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
@@ -679,7 +682,7 @@ fun VideoEditorScreen(
                     when (textPosition) {
                         "Top" -> IntOffset(0, (100f * scalePx).roundToInt())
                         "Bottom" -> IntOffset(0, (-100f * scalePx).roundToInt())
-                        else -> IntOffset(0, (150f * scalePx).roundToInt())
+                        else -> IntOffset(0, 0)
                     }
                 }.fillMaxWidth(0.9f).drawBehind {
                     if (showTextBackground) {
@@ -704,7 +707,7 @@ fun VideoEditorScreen(
                 // Arabic Text Handle
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (((arabicTextY - 70f)) * scalePx).roundToInt()) }
+                        .offset { IntOffset((arabicTextX * scalePx).roundToInt(), (arabicTextY * scalePx).roundToInt()) }
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = {
@@ -738,7 +741,7 @@ fun VideoEditorScreen(
                 if (showTranslation) {
                     Box(
                         modifier = Modifier
-                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (((translationTextY - 90f)) * scalePx).roundToInt()) }
+                            .offset { IntOffset((translationTextX * scalePx).roundToInt(), (translationTextY * scalePx).roundToInt()) }
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = {
