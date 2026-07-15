@@ -754,6 +754,10 @@ class VideoGenerator {
                 } catch (ex: Exception) {}
             }
             
+
+            class AvailableVideo(val url: String, val duration: Int, val source: String)
+            val combinedAvailableVideos = mutableListOf<AvailableVideo>()
+
             if (!videoLoaded && pexelsApiKey.isNotBlank()) {
                 reportProgress(if (isArabic) "جاري البحث عن مشاهد سينمائية سريعة (Pexels)..." else "Searching for dynamic fast-paced cinematic scenes (Pexels)...", 0.3f)
                 try {
@@ -780,90 +784,21 @@ class VideoGenerator {
                         val json = JSONObject(body)
                         val videos = json.getJSONArray("videos")
                         SystemDiagnosticTracker.addLog("API_CALL", "استجابة Pexels: نجاح، تم العثور على ${videos.length()} فيديو متاح")
-                        if (videos.length() > 0) {
-                            val availableVideosList = mutableListOf<JSONObject>()
-                            for (vIdx in 0 until videos.length()) {
-                                availableVideosList.add(videos.getJSONObject(vIdx))
-                            }
-                            
-                            val allChunks = verses.flatMap { it.chunks }
-                            val numBackgroundVideos = allChunks.size
-                            for (vidIdx in 0 until numBackgroundVideos) {
-                                // Skip fetching if the file already exists (from retry)
-                                if (isRetry && chunkIndexToReplace != -1 && vidIdx != chunkIndexToReplace) {
-                                    continue
-                                }
-                                val chunk = allChunks[vidIdx]
-                                val neededDurSec = ((chunk.endTimeMs - chunk.startTimeMs) / 1000L).toInt() + 2
-                                
-                                // Try to find a video with duration >= neededDurSec, otherwise find the longest video
-                                var selectedVideoJson = availableVideosList.filter {
-                                    it.optInt("duration", 0) >= neededDurSec
-                                }.shuffled().firstOrNull()
-                                
-                                if (selectedVideoJson == null) {
-                                    selectedVideoJson = availableVideosList.maxByOrNull { it.optInt("duration", 0) }
-                                }
-                                
-                                if (selectedVideoJson != null) {
-                                    // Remove selected video from lists to maintain variety
-                                    if (availableVideosList.size > 1) {
-                                        availableVideosList.remove(selectedVideoJson)
-                                    }
-                                    
-                                    val videoFiles = selectedVideoJson.getJSONArray("video_files")
-                                    var highestResUrl: String? = null
-                                    
-                                    val mp4Files = mutableListOf<JSONObject>()
-                                    for(v in 0 until videoFiles.length()) {
-                                        val f = videoFiles.getJSONObject(v)
-                                        if (f.getString("link").contains("mp4", ignoreCase = true)) {
-                                            mp4Files.add(f)
-                                        }
-                                    }
-                                    
-                                    val portraitFiles = mp4Files.filter { it.optInt("width", 0) < it.optInt("height", 0) }
-                                    val targetList = if(portraitFiles.isNotEmpty()) portraitFiles else mp4Files
-                                    
-                                    if (targetList.isNotEmpty()) {
-                                        val sortedFiles = targetList.sortedBy { it.optInt("width", 0) * it.optInt("height", 0) }
-                                        highestResUrl = when(videoQuality) {
-                                            "Normal" -> {
-                                                // Try to pick a medium-low one, bounded so it's not absolutely terrible.
-                                                val idx = (sortedFiles.size * 0.25).toInt()
-                                                sortedFiles[idx.coerceAtMost(sortedFiles.lastIndex)].getString("link")
-                                            }
-                                            "High" -> {
-                                                // Try to pick a medium-high one.
-                                                val idx = (sortedFiles.size * 0.6).toInt()
-                                                sortedFiles[idx.coerceAtMost(sortedFiles.lastIndex)].getString("link")
-                                            }
-                                            else -> {
-                                                // "Ultra" - Maximum resolution
-                                                sortedFiles.last().getString("link")
-                                            }
-                                        }
-                                    } else if (videoFiles.length() > 0) {
-                                        highestResUrl = videoFiles.getJSONObject(0).getString("link")
-                                    }
-                                    
-                                    var selectedVideoUrl: String? = highestResUrl
-                                    
-                                    if (selectedVideoUrl != null) {
-                                        reportProgress(
-                                            if (isArabic) "جاري تحميل مشهد متناسق للمقطع ${vidIdx + 1} من ${verses.size}..." else "Downloading duration-matched scene ${vidIdx + 1} of ${verses.size}...",
-                                            0.35f + (vidIdx * 0.15f / verses.size)
-                                        )
-                                        val targetFile = File(context.cacheDir, "bg_video_$vidIdx.mp4")
-                                        SystemDiagnosticTracker.addLog("DOWNLOAD", "بدء تحميل الخلفية ${vidIdx + 1} من أصل $numBackgroundVideos (Pexels)")
-                                        runCatching { downloadAudio(selectedVideoUrl, targetFile, throwOnError = false) }.onFailure { e -> SystemDiagnosticTracker.addLog("DOWNLOAD_ERROR", "فشل تحميل الفيديو: ${e.message}") }
-                                        downloadedVideoFiles.add(targetFile)
-                                        SystemDiagnosticTracker.addLog("DOWNLOAD", "اكتمل تحميل الخلفية ${vidIdx + 1} بنجاح، الحجم: ${targetFile.length()} بايت. متبقي ${numBackgroundVideos - (vidIdx + 1)} خلفيات.")
-                                    }
+                        for (vIdx in 0 until videos.length()) {
+                            val v = videos.getJSONObject(vIdx)
+                            val duration = v.optInt("duration", 0)
+                            val videoFiles = v.getJSONArray("video_files")
+                            val mp4Files = mutableListOf<JSONObject>()
+                            for(fIdx in 0 until videoFiles.length()) {
+                                val f = videoFiles.getJSONObject(fIdx)
+                                if (f.getString("link").contains("mp4", ignoreCase = true)) {
+                                    mp4Files.add(f)
                                 }
                             }
-                            if (downloadedVideoFiles.isNotEmpty()) {
-                                videoLoaded = true
+                            val sortedFiles = mp4Files.sortedByDescending { it.getInt("width") * it.getInt("height") }
+                            val highestResUrl = sortedFiles.firstOrNull()?.getString("link")
+                            if (highestResUrl != null) {
+                                combinedAvailableVideos.add(AvailableVideo(highestResUrl, duration, "Pexels"))
                             }
                         }
                     }
@@ -871,7 +806,7 @@ class VideoGenerator {
                     com.example.utils.AppLogger.e("ExceptionCatch", "Exception caught: ${ e.message }", e)
                 }
             }
-            
+
             if (!videoLoaded && pixabayApiKey.isNotBlank()) {
                 reportProgress(if (isArabic) "جاري البحث عن مناظر طبيعية هادئة سريعة (Pixabay)..." else "Searching for active nature landscapes (Pixabay)...", 0.3f)
                 try {
@@ -896,67 +831,28 @@ class VideoGenerator {
                         val json = JSONObject(body)
                         val hits = json.getJSONArray("hits")
                         SystemDiagnosticTracker.addLog("API_CALL", "استجابة Pixabay: نجاح، تم العثور على ${hits.length()} فيديو متاح")
-                        if (hits.length() > 0) {
-                            val availableHitsList = mutableListOf<JSONObject>()
-                            for (hIdx in 0 until hits.length()) {
-                                availableHitsList.add(hits.getJSONObject(hIdx))
+                        for (hIdx in 0 until hits.length()) {
+                            val h = hits.getJSONObject(hIdx)
+                            val duration = h.optInt("duration", 0)
+                            val videosObj = h.getJSONObject("videos")
+                            val sizeKeys = when (videoQuality) {
+                                "Normal" -> listOf("small", "tiny", "medium", "large")
+                                "High" -> listOf("medium", "small", "large", "tiny")
+                                else -> listOf("large", "medium", "small", "tiny")
                             }
-                            
-                            val allChunks = verses.flatMap { it.chunks }
-                            val numBackgroundVideos = allChunks.size
-                            for (vidIdx in 0 until numBackgroundVideos) {
-                                // Skip fetching if the file already exists (from retry)
-                                if (isRetry && chunkIndexToReplace != -1 && vidIdx != chunkIndexToReplace) {
-                                    continue
-                                }
-                                val chunk = allChunks[vidIdx]
-                                val neededDurSec = ((chunk.endTimeMs - chunk.startTimeMs) / 1000L).toInt() + 2
-                                
-                                var selectedHit = availableHitsList.filter {
-                                    it.optInt("duration", 0) >= neededDurSec
-                                }.shuffled().firstOrNull()
-                                
-                                if (selectedHit == null) {
-                                    selectedHit = availableHitsList.maxByOrNull { it.optInt("duration", 0) }
-                                }
-                                
-                                if (selectedHit != null) {
-                                    if (availableHitsList.size > 1) {
-                                        availableHitsList.remove(selectedHit)
-                                    }
-                                    
-                                    val videosObj = selectedHit.getJSONObject("videos")
-                                    val sizeKeys = when (videoQuality) {
-                                        "Normal" -> listOf("small", "tiny", "medium", "large")
-                                        "High" -> listOf("medium", "small", "large", "tiny")
-                                        else -> listOf("large", "medium", "small", "tiny")
-                                    }
-                                    var selectedVideoUrl: String? = null
-                                    for (key in sizeKeys) {
-                                        if (videosObj.has(key)) {
-                                            val vObj = videosObj.getJSONObject(key)
-                                            val url = vObj.getString("url")
-                                            if (url.isNotBlank()) {
-                                                selectedVideoUrl = url
-                                                break
-                                            }
-                                        }
-                                    }
-                                    if (selectedVideoUrl != null) {
-                                        reportProgress(
-                                            if (isArabic) "جاري تحميل مشهد متناسق للمقطع ${vidIdx + 1} من ${verses.size}..." else "Downloading duration-matched scene ${vidIdx + 1} of ${verses.size}...",
-                                            0.35f + (vidIdx * 0.15f / verses.size)
-                                        )
-                                        val targetFile = File(context.cacheDir, "bg_video_$vidIdx.mp4")
-                                        SystemDiagnosticTracker.addLog("DOWNLOAD", "بدء تحميل الخلفية ${vidIdx + 1} من أصل $numBackgroundVideos (Pixabay)")
-                                        runCatching { downloadAudio(selectedVideoUrl, targetFile, throwOnError = false) }.onFailure { e -> SystemDiagnosticTracker.addLog("DOWNLOAD_ERROR", "فشل تحميل الفيديو: ${e.message}") }
-                                        downloadedVideoFiles.add(targetFile)
-                                        SystemDiagnosticTracker.addLog("DOWNLOAD", "اكتمل تحميل الخلفية ${vidIdx + 1} بنجاح، الحجم: ${targetFile.length()} بايت. متبقي ${numBackgroundVideos - (vidIdx + 1)} خلفيات.")
+                            var selectedVideoUrl: String? = null
+                            for (key in sizeKeys) {
+                                if (videosObj.has(key)) {
+                                    val vObj = videosObj.getJSONObject(key)
+                                    val url = vObj.getString("url")
+                                    if (url.isNotBlank()) {
+                                        selectedVideoUrl = url
+                                        break
                                     }
                                 }
                             }
-                            if (downloadedVideoFiles.isNotEmpty()) {
-                                videoLoaded = true
+                            if (selectedVideoUrl != null) {
+                                combinedAvailableVideos.add(AvailableVideo(selectedVideoUrl, duration, "Pixabay"))
                             }
                         }
                     }
@@ -964,7 +860,64 @@ class VideoGenerator {
                     com.example.utils.AppLogger.e("ExceptionCatch", "Exception caught: ${ e.message }", e)
                 }
             }
-            
+
+            if (!videoLoaded && combinedAvailableVideos.isNotEmpty()) {
+                val allChunks = verses.flatMap { it.chunks }
+                val numBackgroundVideos = allChunks.size
+                
+                // Shuffle available videos to ensure variety
+                combinedAvailableVideos.shuffle()
+                
+                for (vidIdx in 0 until numBackgroundVideos) {
+                    // Skip fetching if the file already exists (from retry)
+                    if (isRetry && chunkIndexToReplace != -1 && vidIdx != chunkIndexToReplace) {
+                        continue
+                    }
+                    val chunk = allChunks[vidIdx]
+                    val neededDurSec = ((chunk.endTimeMs - chunk.startTimeMs) / 1000L).toInt() + 2
+                    
+                    var selectedVideo = combinedAvailableVideos.filter {
+                        it.duration >= neededDurSec
+                    }.shuffled().firstOrNull()
+                    
+                    if (selectedVideo == null) {
+                        selectedVideo = combinedAvailableVideos.maxByOrNull { it.duration }
+                    }
+                    
+                    if (selectedVideo != null) {
+                        if (combinedAvailableVideos.size > 1) {
+                            combinedAvailableVideos.remove(selectedVideo)
+                        }
+                        
+                        reportProgress(
+                            if (isArabic) "جاري تحميل مشهد متناسق للمقطع ${vidIdx + 1} من ${verses.size}..." else "Downloading duration-matched scene ${vidIdx + 1} of ${verses.size}...",
+                            0.35f + (vidIdx * 0.15f / verses.size)
+                        )
+                        val targetFile = File(context.cacheDir, "bg_video_$vidIdx.mp4")
+                        SystemDiagnosticTracker.addLog("DOWNLOAD", "بدء تحميل الخلفية ${vidIdx + 1} من أصل $numBackgroundVideos (${selectedVideo.source})")
+                        
+                        var success = false
+                        try {
+                            downloadAudio(selectedVideo.url, targetFile, throwOnError = true)
+                            if (targetFile.exists() && targetFile.length() > 0) {
+                                success = true
+                            }
+                        } catch (e: Exception) {
+                            SystemDiagnosticTracker.addLog("DOWNLOAD_ERROR", "فشل تحميل الفيديو: ${e.message}")
+                        }
+                        
+                        if (success) {
+                            downloadedVideoFiles.add(targetFile)
+                            SystemDiagnosticTracker.addLog("DOWNLOAD", "اكتمل تحميل الخلفية ${vidIdx + 1} بنجاح، الحجم: ${targetFile.length()} بايت. متبقي ${numBackgroundVideos - (vidIdx + 1)} خلفيات.")
+                        } else {
+                            SystemDiagnosticTracker.addLog("DOWNLOAD_ERROR", "فشل تحميل الخلفية ${vidIdx + 1}، ملف الفيديو تالف أو فارغ.")
+                        }
+                    }
+                }
+                if (downloadedVideoFiles.isNotEmpty()) {
+                    videoLoaded = true
+                }
+            }
             // Fallback to high-quality direct public video CDN loop URLs so we NEVER show a blank background or static image
             if (!videoLoaded) {
                 checkCancellationAndPause()
