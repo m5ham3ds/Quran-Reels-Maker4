@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Delete
@@ -162,6 +163,59 @@ fun SettingsScreen(
                                     checkedTrackColor = LuxuryGold.copy(alpha=0.4f)
                                 )
                             )
+                        }
+
+                        HorizontalDivider(color = Color(0x15FFFFFF))
+
+                        // AI Platform Switcher
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = if (isArabic) "تحديد المنصة المستخدمة" else "Select AI Platform",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Gemini",
+                                    color = if (aiPlatform == "Gemini") com.example.LuxuryGold else com.example.TextMutedColor,
+                                    fontWeight = if (aiPlatform == "Gemini") FontWeight.Bold else FontWeight.Normal,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.clickable { scope.launch { settingsManager.saveAiPlatform("Gemini") } }
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Switch(
+                                    checked = aiPlatform == "HuggingFace",
+                                    onCheckedChange = { isHF -> 
+                                        scope.launch { settingsManager.saveAiPlatform(if (isHF) "HuggingFace" else "Gemini") }
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = com.example.LuxuryGold,
+                                        checkedTrackColor = com.example.LuxuryGold.copy(alpha=0.4f),
+                                        uncheckedThumbColor = com.example.LuxuryGold,
+                                        uncheckedTrackColor = com.example.LuxuryGold.copy(alpha=0.4f)
+                                    ),
+                                    thumbContent = {
+                                        if (aiPlatform == "HuggingFace") {
+                                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(12.dp))
+                                        } else {
+                                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(12.dp))
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = "HuggingFace",
+                                    color = if (aiPlatform == "HuggingFace") com.example.LuxuryGold else com.example.TextMutedColor,
+                                    fontWeight = if (aiPlatform == "HuggingFace") FontWeight.Bold else FontWeight.Normal,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.clickable { scope.launch { settingsManager.saveAiPlatform("HuggingFace") } }
+                                )
+                            }
                         }
 
                         HorizontalDivider(color = Color(0x15FFFFFF))
