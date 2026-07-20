@@ -72,6 +72,9 @@ class SettingsManager(private val context: Context) {
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_MODEL = stringPreferencesKey("gemini_model")
         val GEMINI_PROMPT = stringPreferencesKey("gemini_prompt")
+        val AI_PLATFORM = stringPreferencesKey("ai_platform")
+        val HUGGINGFACE_API_KEY = stringPreferencesKey("huggingface_api_key")
+        val HUGGINGFACE_MODEL = stringPreferencesKey("huggingface_model")
         val TIKTOK_LINKED = booleanPreferencesKey("tiktok_linked")
         val INSTAGRAM_LINKED = booleanPreferencesKey("instagram_linked")
         val FACEBOOK_LINKED = booleanPreferencesKey("facebook_linked")
@@ -185,6 +188,10 @@ class SettingsManager(private val context: Context) {
     // Gemini & Social accounts flows
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
     val geminiModel: Flow<String> = context.dataStore.data.map { it[GEMINI_MODEL] ?: "gemini-3.5-flash" }
+    val aiPlatform: Flow<String> = context.dataStore.data.map { it[AI_PLATFORM] ?: "Gemini" }
+    val huggingfaceApiKey: Flow<String> = context.dataStore.data.map { it[HUGGINGFACE_API_KEY] ?: "" }
+    val huggingfaceModel: Flow<String> = context.dataStore.data.map { it[HUGGINGFACE_MODEL] ?: "Qwen/Qwen2.5-72B-Instruct" }
+    
     val geminiPrompt: Flow<String> = context.dataStore.data.map { it[GEMINI_PROMPT] ?: """
         أنت خبير في تحليل البيانات. لديك معلومات ونص مستخرج من مقطع فيديو ديني.
         يجب عليك الاعتماد كلياً على نص الآيات والمعلومات المرفقة في [WHISPER_TEXT] لتحديد اسم السورة ورقمها، آية البداية، آية النهاية، واسم القارئ.
@@ -441,6 +448,18 @@ class SettingsManager(private val context: Context) {
     }
 
     // Gemini & Social accounts setters
+    suspend fun saveAiPlatform(platform: String) {
+        context.dataStore.edit { it[AI_PLATFORM] = platform }
+    }
+    
+    suspend fun saveHuggingfaceApiKey(key: String) {
+        context.dataStore.edit { it[HUGGINGFACE_API_KEY] = key }
+    }
+    
+    suspend fun saveHuggingfaceModel(model: String) {
+        context.dataStore.edit { it[HUGGINGFACE_MODEL] = model }
+    }
+
     suspend fun saveGeminiKey(key: String) {
         context.dataStore.edit { it[GEMINI_API_KEY] = key }
     }

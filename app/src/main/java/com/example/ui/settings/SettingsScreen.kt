@@ -62,6 +62,9 @@ fun SettingsScreen(
     val pixabayKey by settingsManager.pixabayApiKey.collectAsState(initial = "")
     val geminiKey by settingsManager.geminiApiKey.collectAsState(initial = "")
     val geminiModel by settingsManager.geminiModel.collectAsState(initial = "gemini-3.5-flash")
+    val aiPlatform by settingsManager.aiPlatform.collectAsState(initial = "Gemini")
+    val huggingfaceKey by settingsManager.huggingfaceApiKey.collectAsState(initial = "")
+    val huggingfaceModel by settingsManager.huggingfaceModel.collectAsState(initial = "Qwen/Qwen2.5-72B-Instruct")
     val isDark by settingsManager.themeMode.collectAsState(initial = true)
     val showTrans by settingsManager.showTranslation.collectAsState(initial = true)
     val language by settingsManager.language.collectAsState(initial = "ar")
@@ -718,78 +721,154 @@ fun SettingsScreen(
 
                         // Gemini Text Field & instructions
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(imageVector = Icons.Default.Key, contentDescription = null, tint = Color(0xBCFFFFFF), modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Gemini AI Key", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            if (aiPlatform == "Gemini") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(imageVector = Icons.Default.Key, contentDescription = null, tint = Color(0xBCFFFFFF), modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Gemini AI Key", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                    }
+                                    Text(
+                                        text = if (isArabic) "احصل على مفتاح مجاناً" else "Get free key",
+                                        color = LuxuryGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier
+                                            .clickable { uriHandler.openUri("https://aistudio.google.com/") }
+                                            .padding(4.dp)
+                                    )
                                 }
                                 Text(
-                                    text = if (isArabic) "احصل على مفتاح Gemini مجاناً" else "Get free Gemini key",
-                                    color = LuxuryGold,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier
-                                        .clickable { uriHandler.openUri("https://aistudio.google.com/") }
-                                        .padding(4.dp)
+                                    text = if (isArabic) "مطلوب لتوليد العناوين والوصف والهاشتاجات الذكية لكل منصة بشكل احترافي" else "Required to generate smart platform-specific titles, descriptions, and tags automatically",
+                                    color = TextMutedColor,
+                                    fontSize = 11.sp,
+                                    lineHeight = 15.sp,
+                                    modifier = Modifier.padding(bottom = 2.dp)
                                 )
-                            }
-                            Text(
-                                text = if (isArabic) "مطلوب لتوليد العناوين والوصف والهاشتاجات الذكية لكل منصة بشكل احترافي" else "Required to generate smart platform-specific titles, descriptions, and tags automatically",
-                                color = TextMutedColor,
-                                fontSize = 11.sp,
-                                lineHeight = 15.sp,
-                                modifier = Modifier.padding(bottom = 2.dp)
-                            )
-                            OutlinedTextField(
-                                value = geminiKey,
-                                onValueChange = { scope.launch { settingsManager.saveGeminiKey(it) } },
-                                placeholder = { Text(if (isArabic) "أدخل مفتاح Gemini هنا لروبوت الذكاء الاصطناعي..." else "Paste your Gemini API key...", color = Color(0x61FFFFFF)) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
-                                    focusedBorderColor = LuxuryGold,
-                                    unfocusedBorderColor = Color(0x33FFFFFF),
-                                    focusedContainerColor = Color(0x0FFFFFFF),
-                                    unfocusedContainerColor = Color(0x05FFFFFF)
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = if (isArabic) "نموذج الذكاء الاصطناعي (Gemini Model)" else "Gemini AI Model",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(bottom = 6.dp)
-                            )
-                            val models = listOf(
-                                "gemini-3.5-flash",
-                                "gemini-3.1-pro-preview",
-                                "gemini-3.1-flash-lite",
-                                "gemini-2.5-flash"
-                            )
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                models.forEach { model ->
-                                    FilterChip(
-                                        selected = geminiModel == model,
-                                        onClick = { scope.launch { settingsManager.saveGeminiModel(model) } },
-                                        label = { Text(model, color = if (geminiModel == model) Color.Black else Color.White) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = LuxuryGold,
-                                            containerColor = Color(0x33FFFFFF)
+                                OutlinedTextField(
+                                    value = geminiKey,
+                                    onValueChange = { scope.launch { settingsManager.saveGeminiKey(it) } },
+                                    placeholder = { Text(if (isArabic) "أدخل مفتاح Gemini هنا..." else "Paste your Gemini API key...", color = Color(0x61FFFFFF)) },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = Color.White,
+                                        unfocusedTextColor = Color.White,
+                                        focusedBorderColor = LuxuryGold,
+                                        unfocusedBorderColor = Color(0x33FFFFFF),
+                                        focusedContainerColor = Color(0x0FFFFFFF),
+                                        unfocusedContainerColor = Color(0x05FFFFFF)
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = if (isArabic) "نموذج الذكاء الاصطناعي (Gemini Model)" else "Gemini AI Model",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(bottom = 6.dp)
+                                )
+                                val models = listOf(
+                                    "gemini-3.5-flash",
+                                    "gemini-3.1-pro-preview",
+                                    "gemini-3.1-flash-lite",
+                                    "gemini-2.5-flash"
+                                )
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    models.forEach { model ->
+                                        FilterChip(
+                                            selected = geminiModel == model,
+                                            onClick = { scope.launch { settingsManager.saveGeminiModel(model) } },
+                                            label = { Text(model, color = if (geminiModel == model) Color.Black else Color.White) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = LuxuryGold,
+                                                containerColor = Color(0x33FFFFFF)
+                                            )
                                         )
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(imageVector = Icons.Default.Key, contentDescription = null, tint = Color(0xBCFFFFFF), modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Hugging Face API Key", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                    }
+                                    Text(
+                                        text = if (isArabic) "احصل على مفتاح مجاناً" else "Get free key",
+                                        color = LuxuryGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier
+                                            .clickable { uriHandler.openUri("https://huggingface.co/settings/tokens") }
+                                            .padding(4.dp)
                                     )
+                                }
+                                Text(
+                                    text = if (isArabic) "بديل Gimien (Gemini) لاستخدام نماذج DeepSeek و Qwen" else "Gemini alternative to use DeepSeek and Qwen models",
+                                    color = TextMutedColor,
+                                    fontSize = 11.sp,
+                                    lineHeight = 15.sp,
+                                    modifier = Modifier.padding(bottom = 2.dp)
+                                )
+                                OutlinedTextField(
+                                    value = huggingfaceKey,
+                                    onValueChange = { scope.launch { settingsManager.saveHuggingfaceApiKey(it) } },
+                                    placeholder = { Text(if (isArabic) "أدخل مفتاح Hugging Face هنا..." else "Paste your Hugging Face API key...", color = Color(0x61FFFFFF)) },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = Color.White,
+                                        unfocusedTextColor = Color.White,
+                                        focusedBorderColor = LuxuryGold,
+                                        unfocusedBorderColor = Color(0x33FFFFFF),
+                                        focusedContainerColor = Color(0x0FFFFFFF),
+                                        unfocusedContainerColor = Color(0x05FFFFFF)
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = if (isArabic) "نموذج الذكاء الاصطناعي (Hugging Face Model)" else "Hugging Face AI Model",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(bottom = 6.dp)
+                                )
+                                val hfModels = listOf(
+                                    "Qwen/Qwen2.5-72B-Instruct",
+                                    "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+                                    "google/gemma-2-27b-it"
+                                )
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    hfModels.forEach { model ->
+                                        FilterChip(
+                                            selected = huggingfaceModel == model,
+                                            onClick = { scope.launch { settingsManager.saveHuggingfaceModel(model) } },
+                                            label = { Text(model.split("/").last(), color = if (huggingfaceModel == model) Color.Black else Color.White) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = LuxuryGold,
+                                                containerColor = Color(0x33FFFFFF)
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
