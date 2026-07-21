@@ -619,7 +619,7 @@ fun SettingsScreen(
                                                 kotlinx.coroutines.delay(2000L * attempt)
                                             } else {
                                                 val errorBody = response.body?.string() ?: ""
-                                                com.example.generator.SystemDiagnosticTracker.addLog("ERROR", "فشل الاتصال: رمز الاستجابة ${response.code}، التفاصيل: $errorBody\nالرابط كان: $url")
+                                                com.example.generator.SystemDiagnosticTracker.addLog("ERROR", "فشل الاتصال: رمز الاستجابة ${response.code}، التفاصيل: $errorBody")
                                                 withContext(Dispatchers.Main) {
                                                     android.widget.Toast.makeText(context, if (isArabic) "فشل الاتصال: ${response.code}\n$errorBody" else "Connection failed: ${response.code}\n$errorBody", android.widget.Toast.LENGTH_LONG).show()
                                                 }

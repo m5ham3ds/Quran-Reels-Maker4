@@ -129,12 +129,13 @@ class GeminiMetaGenerator {
             }
         }
 
-        SystemDiagnosticTracker.addLog("GEMINI", "تم جلب المعلومات بنجاح وإعدادها. جاري الانتقال إلى إرسال المعلومات والبرومبت الاحترافي إلى نموذج ذكاء اصطناعي Gemini...")
+        SystemDiagnosticTracker.addLog("GEMINI", "تم جلب المعلومات بنجاح وإعدادها. جاري الانتقال إلى إرسال المعلومات والبرومبت الاحترافي إلى نموذج ذكاء اصطناعي...")
         
-        val prompt = """
+        val userPromptTemplate = settingsManager.geminiPrompt.first()
+        val defaultTemplate = """
             أنت خبير في التعرف على تلاوات القرآن الكريم.
-            لدينا مقطع فيديو/صوت بهذا الرابط: $videoUrl
-            والنص المستخرج منه (إن وجد): "$transcription"
+            لدينا مقطع فيديو/صوت بهذا الرابط: [URL]
+            والنص المستخرج منه (إن وجد): "[WHISPER_TEXT]"
             وبعض البيانات الوصفية من الفيديو (العنوان، الوصف، الكلمات المفتاحية):
             $videoInfo
             ملاحظة (إن وجدت مشكلة في جلب النص): $whisperError
@@ -159,6 +160,14 @@ class GeminiMetaGenerator {
                 "category": "خشوع"
             }
         """.trimIndent()
+        
+        val finalTemplate = if (userPromptTemplate.isBlank()) defaultTemplate else userPromptTemplate
+        
+        val prompt = finalTemplate
+            .replace("[URL]", videoUrl)
+            .replace("[WHISPER_TEXT]", transcription)
+            .replace("$videoInfo", videoInfo)
+            .replace("$whisperError", whisperError)
 
         val request: Request
         if (aiPlatform == "HuggingFace") {

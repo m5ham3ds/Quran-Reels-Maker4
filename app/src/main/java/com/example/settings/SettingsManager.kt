@@ -72,6 +72,7 @@ class SettingsManager(private val context: Context) {
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_MODEL = stringPreferencesKey("gemini_model")
         val GEMINI_PROMPT = stringPreferencesKey("gemini_prompt")
+        val BACKGROUND_KEYWORDS_PROMPT = stringPreferencesKey("background_keywords_prompt")
         val AI_PLATFORM = stringPreferencesKey("ai_platform")
         val HUGGINGFACE_API_KEY = stringPreferencesKey("huggingface_api_key")
         val HUGGINGFACE_MODEL = stringPreferencesKey("huggingface_model")
@@ -191,6 +192,8 @@ class SettingsManager(private val context: Context) {
     val aiPlatform: Flow<String> = context.dataStore.data.map { it[AI_PLATFORM] ?: "Gemini" }
     val huggingfaceApiKey: Flow<String> = context.dataStore.data.map { it[HUGGINGFACE_API_KEY] ?: "" }
     val huggingfaceModel: Flow<String> = context.dataStore.data.map { it[HUGGINGFACE_MODEL] ?: "Qwen/Qwen2.5-72B-Instruct" }
+    
+    val backgroundKeywordsPrompt: Flow<String> = context.dataStore.data.map { it[BACKGROUND_KEYWORDS_PROMPT] ?: "Generate 10 English keywords or short phrases optimized for Pexels/Pixabay to find aesthetic cinematic, nature, atmospheric, and Islamic-themed background videos (e.g. 'islamic aesthetics kaaba mecca', 'dark cinematic aesthetic landscape', 'stormy rain window', 'stars night sky'). Return ONLY a comma-separated list of strings." }
     
     val geminiPrompt: Flow<String> = context.dataStore.data.map { it[GEMINI_PROMPT] ?: """
         أنت خبير في تحليل البيانات. لديك معلومات ونص مستخرج من مقطع فيديو ديني.
@@ -468,6 +471,10 @@ class SettingsManager(private val context: Context) {
         context.dataStore.edit { it[GEMINI_MODEL] = model }
     }
     
+    suspend fun saveBackgroundKeywordsPrompt(prompt: String) {
+        context.dataStore.edit { it[BACKGROUND_KEYWORDS_PROMPT] = prompt }
+    }
+
     suspend fun saveGeminiPrompt(prompt: String) {
         context.dataStore.edit { it[GEMINI_PROMPT] = prompt }
     }
